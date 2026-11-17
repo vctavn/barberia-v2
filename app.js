@@ -586,6 +586,10 @@ function renderRevenueChart(period = 'today') {
 
 // ================= INICIALIZACIÓN =================
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.classList.remove('active');
+    m.style.display = 'none';
+  });
   setupEventListeners();
   applyUserSession();
   setDeviceMode(currentDeviceMode);
@@ -2158,12 +2162,18 @@ function quickBookForClient(clientId) {
 // ================= MODALES Y FORMULARIOS =================
 function openModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  }
 }
 
 function closeModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
 }
 
 function saveExpenseFromModal() {

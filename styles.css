@@ -1260,19 +1260,24 @@ body.preview-device-mobile .app-layout {
 
 /* ================= MODALES ESTILO APPLE ================= */
 .modal-overlay {
+  display: none !important;
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  display: flex;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex !important;
   animation: fadeIn 0.2s ease;
 }
 
+.modal-container,
 .modal-content {
   background: var(--bg-surface-glass);
   backdrop-filter: blur(32px);
@@ -1285,6 +1290,7 @@ body.preview-device-mobile .app-layout {
   max-height: 90vh;
   overflow-y: auto;
   border: none !important;
+  position: relative;
 }
 
 .modal-header {
@@ -1300,22 +1306,39 @@ body.preview-device-mobile .app-layout {
   color: #ffffff;
 }
 
+.modal-close,
 .modal-close-btn {
   background: rgba(255, 255, 255, 0.08);
   border: none !important;
   color: var(--text-secondary);
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.15s ease;
 }
 
+.modal-close:hover,
 .modal-close-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
+}
+
+.modal-body {
+  margin-bottom: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--glass-border);
 }
 
 /* ================= BARRA DE NAVEGACIÓN MÓVIL (IOS BOTTOM TAB BAR) ================= */
