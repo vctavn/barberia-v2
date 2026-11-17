@@ -156,6 +156,15 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.login-screen.hidden,
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .login-top-bar {

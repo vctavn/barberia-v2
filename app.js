@@ -314,7 +314,11 @@ function quickLogin(user, pass) {
 
 function logout() {
   saveSession(null);
-  document.getElementById('login-screen').classList.remove('hidden');
+  const loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.classList.remove('hidden');
+    loginScreen.style.display = 'flex';
+  }
   document.getElementById('login-username').value = '';
   document.getElementById('login-password').value = '';
   showToast("Sesión cerrada", "info");
@@ -324,11 +328,17 @@ function applyUserSession() {
   const loginScreen = document.getElementById('login-screen');
 
   if (!currentUser) {
-    loginScreen.classList.remove('hidden');
+    if (loginScreen) {
+      loginScreen.classList.remove('hidden');
+      loginScreen.style.display = 'flex';
+    }
     return;
   }
 
-  loginScreen.classList.add('hidden');
+  if (loginScreen) {
+    loginScreen.classList.add('hidden');
+    loginScreen.style.display = 'none';
+  }
 
   document.getElementById('header-user-name').textContent = currentUser.name;
   document.getElementById('header-user-avatar').textContent = currentUser.avatar || (currentUser.role === 'admin' ? 'CG' : 'BP');
