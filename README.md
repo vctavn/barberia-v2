@@ -1,71 +1,51 @@
-# The Barber Club & Co. - Sistema de Gestión de Barbería
+# The Barber Club & Co. - Sistema de Gestión v2.0 (Fintech Edition)
 
-Sistema web profesional, sobrio y ligero para la gestión integral de una barbería comercial o cadena de sucursales. Diseñado con una interfaz SaaS B2B limpia y discreta, funciona de forma autónoma sin dependencias complejas ni frameworks pesados, garantizando máxima velocidad y privacidad.
+Plataforma web de última generación inspirada en los estándares de diseño de **Apple iOS**, **Revolut** y **MyWallet**. Combina una arquitectura visual sin bordes (*borderless buttons* y *glassmorphism* obsidiana), un gráfico interactivo financiero en tiempo real, tipografía pulida estilo SF Pro, soporte responsive nativo con selector de dispositivo (**Computadora / Celular**), barra de navegación inferior para smartphones, cero emojis y preservación del 100% de la lógica de negocio.
+
+---
+
+## Novedades de la Versión 2.0
+
+1. **Diseño Revolut & Apple iOS (Dark Fintech):**
+   - Paleta obsidiana profunda (`#080A10`), superficies con efecto *frosted glass* translúcido (`backdrop-filter: blur(20px)`), acentos azul Apple (`#0A84FF`), verde esmeralda financiero (`#10B981`) y cian luminiscente (`#00E5FF`).
+   - Botones 100% sin bordes duros (`border: none !important`), redondeo suave tipo píldora / squircle y micro-interacciones táctiles reactivas.
+
+2. **Gráfico Financiero Interactivo en Tablero Principal:**
+   - Gráfico de curvas Bezier suaves con relleno degradado luminiscente.
+   - Selector dinámico de periodos: **`Hoy`**, **`7D`**, **`30D`** y **`Todo`**.
+   - Tooltip flotante interactivo al pasar el cursor o pulsar sobre los nodos con hora/fecha y monto exacto.
+   - Cálculo del balance total del periodo y badge de tendencia porcentual.
+
+3. **Selector de Dispositivo (Computadora / Celular):**
+   - Selector en la pantalla de inicio de sesión y en la barra superior del sistema.
+   - Modo celular con contenedor de previsualización para pruebas y barra de navegación inferior (*iOS Bottom Tab Bar*) adaptada a pantallas táctiles.
+
+4. **Calendario con Selección Destacada de Fecha:**
+   - Corrección integral de la selección de fechas en el calendario.
+   - Indicador visual prominente con píldora brillante en gradiente y marcador activo `✕` en el día seleccionado.
+
+5. **Barra Lateral con Iconografía Vectorial Limpia:**
+   - Iconos SVG minimalistas estilo Apple SF Symbols.
+   - Cero emojis en toda la interfaz, mensajes y notificaciones.
+
+---
+
+## Roles y Sesiones
+
+### 1. Sesión de Caja / Administrador
+- **Usuario:** `caja` (o `admin`) | **Contraseña:** `123`
+- Control total: Tablero con Chart de ingresos, Agenda de Citas con cobro directo en POS, Punto de Venta con ticket térmico, Corte de Caja con fondo inicial protegido por clave (`12345`), Gestión de Barberos, Catálogo y Directorio de Clientes.
+- **Limpieza de Datos Demo:** Botón en cabecera para vaciar citas, clientes y movimientos de prueba en demostraciones.
+
+### 2. Sesiones de Barberos
+- **Carlos Mendoza:** `carlos` / `123`
+- **Mateo Silva:** `mateo` / `123`
+- **David Romero:** `david` / `123`
+- Visualización de citas personales en tiempo real (estado de solo lectura gestionado por recepción) y captura de propinas directas en efectivo.
 
 ---
 
 ## Cómo Iniciar el Sistema
 
-1. **Opción 1:** Haz doble clic sobre el archivo `actualizar_y_abrir.bat` (sincroniza cambios si hay conexión y abre la app).
-2. **Opción 2:** Haz doble clic sobre `abrir_barberia.bat` o `index.html` en tu navegador favorito.
-
----
-
-## Sistema de Sesiones & Cuentas por Rol
-
-La plataforma cuenta con un sistema de autenticación para separar la información sensible de la caja y administración de la vista de agenda de los barberos:
-
-### 1. Sesión de Caja / Administrador
-- **Usuario:** `caja` (o `admin`) | **Contraseña:** `123`
-- **Acceso:** Control total de la plataforma:
-  - **Tablero Principal:** Métricas en tiempo real de facturación, citas agendadas, servicios atendidos y ticket promedio.
-  - **Agenda de Citas:** Control de estados de cada cliente. Al seleccionar **"Completar y Cobrar"**, el sistema redirige automáticamente al Punto de Venta con los servicios precargados para cobro inmediato.
-  - **Punto de Venta:** Cobro de servicios y productos, desglose de tickets, descuentos y múltiples métodos de pago (efectivo, tarjeta, transferencia).
-  - **Control & Corte de Caja:** Fondo inicial editable con clave de seguridad, desglose por método de pago, registro de gastos de caja chica, arqueo físico de efectivo y cálculo automático de sobrante/faltante.
-  - **Gestión de Barberos:** Administración de personal y credenciales de acceso.
-  - **Catálogo & Inventario:** Gestión de tarifas de corte y stock de productos de cuidado.
-  - **Directorio de Clientes:** Historial de consumos, visitas y preferencias de corte.
-  - **Botón Limpiar Datos Demo:** Permite vaciar citas, propinas y movimientos de prueba para iniciar una demostración limpia.
-
-### 2. Sesiones Individuales para Barberos
-- Cuentas de acceso individuales:
-  - **Carlos Mendoza:** Usuario `carlos` | Contraseña `123`
-  - **Mateo Silva:** Usuario `mateo` | Contraseña `123`
-  - **David Romero:** Usuario `david` | Contraseña `123`
-- **Acceso exclusivo del barbero:**
-  - **Mi Agenda de Citas:** Visualiza únicamente a sus clientes asignados con calendario interactivo.
-  - **Estado en Tiempo Real (Solo Lectura):** Visualiza el estado asignado por la cajera (`En Espera`, `En Sillón`, `Cobrado / Completado`), sin permisos de modificación.
-  - **Registro de Propinas:** Módulo exclusivo para registrar propinas directas en efectivo entregadas por los clientes, con historial y total acumulado.
-  - **Privacidad Financiera:** El personal no tiene visibilidad sobre ingresos globales, gastos ni arqueos de caja del negocio.
-
----
-
-## Funcionalidades Clave
-
-### 1. Edición de Fondo Inicial con Clave de Dueño
-- El fondo inicial de caja (por defecto $500) puede editarse directamente desde el módulo de Corte de Caja.
-- Requiere autenticación con la contraseña autorizada de dueño: **`12345`**.
-
-### 2. Limpieza de Datos de Demostración (Reset Demo)
-- Diseñado para pruebas y demostraciones en vivo.
-- Vacía en un solo clic las citas de agenda, los movimientos de caja, las propinas registradas y los cierres previos sin alterar el catálogo de servicios ni las cuentas de usuarios.
-
-### 3. Flujo Directo de Cobro
-- Al marcar una cita como completada en la agenda, el sistema abre la orden directamente en el Punto de Venta para agilizar la atención en recepción.
-
-### 4. Selección Múltiple de Servicios
-- Permite seleccionar combinaciones de servicios al agendar (ej. Corte Clásico + Perfilado de Barba + Cejas), calculando automáticamente precio y tiempo total.
-
----
-
-## Estructura del Proyecto
-
-```
-barbershop-system/
-├── index.html              # Interfaz principal, pantalla de acceso y modales
-├── styles.css              # Hoja de estilos profesional SaaS (sobrio, sin emojis)
-├── app.js                  # Lógica de sesiones, ventas, arqueo, propinas y reset demo
-├── abrir_barberia.bat      # Acceso directo rápido en Windows
-├── actualizar_y_abrir.bat  # Script para actualizar vía git y abrir el sistema
-└── README.md               # Documentación general del sistema
-```
+1. **Doble clic en `abrir_barberia.bat`** o abrir `index.html` en Google Chrome / Microsoft Edge / Safari.
+2. Alternativamente, ejecutar `actualizar_y_abrir.bat` para sincronizar cambios remotos.

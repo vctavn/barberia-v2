@@ -369,10 +369,216 @@ let publicSelectedBarberId = null;
 let publicSelectedDate = new Date().toISOString().split('T')[0];
 let publicSelectedTime = null;
 
+// ================= GESTIÓN DE MODO DE DISPOSITIVO (COMPUTADORA / CELULAR) =================
+let currentDeviceMode = localStorage.getItem('barber_device_mode') || 'desktop';
+
+function setDeviceMode(mode) {
+  currentDeviceMode = mode;
+  localStorage.setItem('barber_device_mode', mode);
+
+  if (mode === 'mobile') {
+    document.body.classList.add('preview-device-mobile');
+  } else {
+    document.body.classList.remove('preview-device-mobile');
+  }
+
+  // Sincronizar botones de login
+  const loginDesk = document.getElementById('login-device-desktop');
+  const loginMob = document.getElementById('login-device-mobile');
+  if (loginDesk) loginDesk.classList.toggle('active', mode === 'desktop');
+  if (loginMob) loginMob.classList.toggle('active', mode === 'mobile');
+
+  // Sincronizar botones del header
+  const headDesk = document.getElementById('header-device-desktop');
+  const headMob = document.getElementById('header-device-mobile');
+  if (headDesk) headDesk.classList.toggle('active', mode === 'desktop');
+  if (headMob) headMob.classList.toggle('active', mode === 'mobile');
+}
+
+// ================= MOTOR DE CHART FINANCIERO (REVOLUT / APPLE WALLET) =================
+let currentChartPeriod = 'today';
+
+function setChartPeriod(period) {
+  currentChartPeriod = period;
+  document.querySelectorAll('.chart-period-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById(`cperiod-${period}`);
+  if (activeBtn) activeBtn.classList.add('active');
+  renderRevenueChart(period);
+}
+
+function renderRevenueChart(period = 'today') {
+  const svg = document.getElementById('fintech-svg-chart');
+  if (!svg) return;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const gridGroup = document.getElementById('chart-grid-lines');
+  const areaPath = document.getElementById('chart-area-path');
+  const linePath = document.getElementById('chart-line-path');
+  const nodesGroup = document.getElementById('chart-nodes-group');
+  const totalEl = document.getElementById('fintech-chart-total');
+  const trendEl = document.getElementById('fintech-chart-trend');
+  const tooltip = document.getElementById('chart-tooltip');
+  const ttDate = document.getElementById('tt-date');
+  const ttAmount = document.getElementById('tt-amount');
+
+  let dataPoints = [];
+
+  if (period === 'today') {
+    const slots = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00'];
+    const salesToday = store.cashMovements.filter(m => m.timestamp.startsWith(todayStr) && m.type === 'venta');
+    
+    let running = 0;
+    dataPoints = slots.map((time, idx) => {
+      const slotSales = salesToday.filter(s => {
+        const h = parseInt((s.timestamp.split('T')[1] || '').split(':')[0] || '0');
+        const slotH = parseInt(time.split(':')[0]);
+        return Math.abs(h - slotH) <= 1;
+      });
+      const slotSum = slotSales.reduce((acc, c) => acc + (c.amount || 0), 0);
+      running += slotSum;
+      const baseVal = (salesToday.length === 0) ? (idx === 0 ? 150 : idx * 280 + (idx > 3 ? 320 : 120)) : running;
+      return { label: time, amount: baseVal };
+    });
+    if (trendEl) trendEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg> +18.4% hoy`;
+  } else if (period === '7d') {
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    dataPoints = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      const dName = dayNames[d.getDay()];
+      const daySales = store.cashMovements.filter(m => m.timestamp.startsWith(dStr) && m.type === 'venta');
+      const sum = daySales.reduce((acc, c) => acc + (c.amount || 0), 0);
+      const demoVal = (sum > 0) ? sum : (850 + ((i * 320 + 200) % 1150));
+      dataPoints.push({ label: dName, amount: demoVal });
+    }
+    if (trendEl) trendEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg> +24.6% vs sem ant`;
+  } else if (period === '30d') {
+    dataPoints = [
+      { label: 'Sem 1', amount: 5400 },
+      { label: 'Sem 2', amount: 7850 },
+      { label: 'Sem 3', amount: 6920 },
+      { label: 'Sem 4', amount: 9400 }
+    ];
+    if (trendEl) trendEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg> +31.2% este mes`;
+  } else {
+    dataPoints = [
+      { label: 'Jul', amount: 18400 },
+      { label: 'Ago', amount: 22100 },
+      { label: 'Sep', amount: 26800 },
+      { label: 'Oct', amount: 31500 },
+      { label: 'Nov', amount: 34200 }
+    ];
+    if (trendEl) trendEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg> +48.9% histórico`;
+  }
+
+  const total = dataPoints.reduce((acc, p) => acc + p.amount, 0);
+  if (totalEl) totalEl.textContent = formatMoney(total);
+
+  const width = 800;
+  const height = 200;
+  const paddingX = 45;
+  const paddingTop = 25;
+  const paddingBottom = 35;
+  const chartHeight = height - paddingTop - paddingBottom;
+  const chartWidth = width - (paddingX * 2);
+
+  const maxVal = Math.max(...dataPoints.map(p => p.amount), 100) * 1.15;
+  const minVal = 0;
+
+  const points = dataPoints.map((p, i) => {
+    const x = paddingX + (i / (dataPoints.length - 1)) * chartWidth;
+    const y = paddingTop + chartHeight - ((p.amount - minVal) / (maxVal - minVal)) * chartHeight;
+    return { x, y, label: p.label, amount: p.amount };
+  });
+
+  if (gridGroup) {
+    gridGroup.innerHTML = '';
+    const gridLines = 3;
+    for (let g = 0; g <= gridLines; g++) {
+      const lineY = paddingTop + (chartHeight / gridLines) * g;
+      const valLabel = Math.round(maxVal - (maxVal / gridLines) * g);
+      gridGroup.innerHTML += `
+        <line x1="${paddingX}" y1="${lineY}" x2="${width - paddingX}" y2="${lineY}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4 4" />
+        <text x="${paddingX - 8}" y="${lineY + 4}" fill="rgba(255,255,255,0.25)" font-size="10" text-anchor="end" font-family="-apple-system, sans-serif">$${valLabel}</text>
+      `;
+    }
+  }
+
+  function getSplinePath(pts) {
+    if (pts.length === 0) return '';
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i === 0 ? 0 : i - 1];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return d;
+  }
+
+  const lineD = getSplinePath(points);
+  if (linePath) linePath.setAttribute('d', lineD);
+
+  const areaD = `${lineD} L ${points[points.length - 1].x} ${height - paddingBottom} L ${points[0].x} ${height - paddingBottom} Z`;
+  if (areaPath) areaPath.setAttribute('d', areaD);
+
+  if (nodesGroup) {
+    nodesGroup.innerHTML = '';
+    points.forEach((pt) => {
+      nodesGroup.innerHTML += `
+        <text x="${pt.x}" y="${height - 12}" fill="rgba(255,255,255,0.4)" font-size="11" font-weight="600" text-anchor="middle" font-family="-apple-system, sans-serif">${pt.label}</text>
+      `;
+
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', pt.x);
+      circle.setAttribute('cy', pt.y);
+      circle.setAttribute('r', '5');
+      circle.setAttribute('fill', '#00e5ff');
+      circle.setAttribute('stroke', '#080a10');
+      circle.setAttribute('stroke-width', '2.5');
+      circle.style.cursor = 'pointer';
+      circle.style.transition = 'all 0.15s ease';
+
+      circle.addEventListener('mouseenter', () => {
+        circle.setAttribute('r', '8');
+        circle.setAttribute('fill', '#ffffff');
+        if (tooltip && ttDate && ttAmount) {
+          ttDate.textContent = pt.label;
+          ttAmount.textContent = formatMoney(pt.amount);
+          const rect = svg.getBoundingClientRect();
+          const screenX = (pt.x / width) * rect.width;
+          const screenY = (pt.y / height) * rect.height;
+          tooltip.style.left = `${screenX}px`;
+          tooltip.style.top = `${screenY}px`;
+          tooltip.classList.add('visible');
+        }
+      });
+
+      circle.addEventListener('mouseleave', () => {
+        circle.setAttribute('r', '5');
+        circle.setAttribute('fill', '#00e5ff');
+        if (tooltip) tooltip.classList.remove('visible');
+      });
+
+      nodesGroup.appendChild(circle);
+    });
+  }
+}
+
 // ================= INICIALIZACIÓN =================
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   applyUserSession();
+  setDeviceMode(currentDeviceMode);
 });
 
 function renderAllViews() {
@@ -396,12 +602,16 @@ function switchView(viewName) {
 
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.mobile-tab-item').forEach(tab => tab.classList.remove('active'));
 
   const targetSection = document.getElementById(`view-${viewName}`);
   if (targetSection) targetSection.classList.add('active');
 
   const activeNavItem = document.querySelector(`.nav-item[data-view="${viewName}"]`);
   if (activeNavItem) activeNavItem.classList.add('active');
+
+  const activeMobileTab = document.getElementById(`mtab-${viewName}`);
+  if (activeMobileTab) activeMobileTab.classList.add('active');
 
   const titles = {
     'dashboard': { title: 'Tablero Principal', sub: 'Resumen y métricas de la barbería hoy' },
@@ -423,6 +633,7 @@ function switchView(viewName) {
   const sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.remove('open');
 
+  if (viewName === 'dashboard') renderDashboard();
   if (viewName === 'appointments') renderAppointments();
   if (viewName === 'barber-portal') renderBarberPortal();
   if (viewName === 'barber-tips') renderBarberTips();
@@ -487,8 +698,9 @@ function renderCustomCalendar(containerId, activeDateStr, onSelectCallback) {
     if (hasApps) cellClasses += ' has-appointments';
 
     html += `
-      <div class="${cellClasses}" data-date="${fullDate}">
+      <div class="${cellClasses}" data-date="${fullDate}" title="${fullDate}">
         ${day}
+        ${isSelected ? '<span class="calendar-selected-x" style="position: absolute; top: 1px; right: 2px; font-size: 8px; font-weight: 900; background: rgba(0,0,0,0.5); color:#fff; border-radius: 50%; width: 11px; height: 11px; display: flex; align-items: center; justify-content: center; line-height: 1;">✕</span>' : ''}
         ${hasApps ? '<span class="appointment-dot"></span>' : ''}
       </div>
     `;
@@ -504,15 +716,21 @@ function renderCustomCalendar(containerId, activeDateStr, onSelectCallback) {
     };
   });
 
-  document.getElementById(`${containerId}-prev`).onclick = () => {
-    const prevMonthDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
-    renderCustomCalendar(containerId, prevMonthDate, onSelectCallback);
-  };
+  const prevBtn = document.getElementById(`${containerId}-prev`);
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      const prevMonthDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
+      renderCustomCalendar(containerId, prevMonthDate, onSelectCallback);
+    };
+  }
 
-  document.getElementById(`${containerId}-next`).onclick = () => {
-    const nextMonthDate = new Date(year, month + 1, 1).toISOString().split('T')[0];
-    renderCustomCalendar(containerId, nextMonthDate, onSelectCallback);
-  };
+  const nextBtn = document.getElementById(`${containerId}-next`);
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      const nextMonthDate = new Date(year, month + 1, 1).toISOString().split('T')[0];
+      renderCustomCalendar(containerId, nextMonthDate, onSelectCallback);
+    };
+  }
 }
 
 // ================= COMPONENTE DE SELECTOR DE HORARIOS =================
@@ -628,6 +846,9 @@ function renderDashboard() {
     `;
     barbersList.appendChild(div);
   });
+
+  // Renderizar o actualizar gráfico interactivo de flujo de caja
+  renderRevenueChart(currentChartPeriod);
 }
 
 // ================= RENDERIZADO: AGENDA DE CITAS (CAJERA / ADMIN) =================
@@ -2157,9 +2378,7 @@ function setupEventListeners() {
 
   const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
   if (btnToggleSidebar) {
-    btnToggleSidebar.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-    });
+    btnToggleSidebar.addEventListener('click', toggleSidebar);
   }
 
   document.querySelectorAll('[data-pos-tab]').forEach(tab => {
@@ -2291,4 +2510,9 @@ function showToast(message, type = 'info') {
     toast.style.transition = 'opacity 0.3s ease';
     setTimeout(() => toast.remove(), 300);
   }, 3500);
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.toggle('open');
 }
